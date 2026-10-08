@@ -1,6 +1,6 @@
 import browser from 'webextension-polyfill'
 
-import { CONTENT_SCRIPT_MATCHES } from '~/constants/contentScript'
+import { CONTENT_SCRIPT_MATCHES, isContentScriptTargetUrl } from '~/constants/contentScript'
 import { TOP_BAR_STATE_MESSAGE } from '~/constants/topBarState'
 
 // 登录态相关的会话 Cookie（见 bilibili-API-collect docs/login/exit.md：
@@ -21,6 +21,17 @@ let broadcastTimer: ReturnType<typeof setTimeout> | null = null
  * 例行轮换等值变化会被标签页侧的 mid 比对自然过滤。
  */
 export function setupLoginStateWatcher() {
+  // Safari has no cookies.onChanged. Tab transitions wake its nonpersistent
+  // background; the content script also reconciles cookies on visibilitychange.
+  if (__SAFARI__) {
+    browser.tabs.onActivated.addListener(scheduleBroadcastLoginStateChanged)
+    browser.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
+      if (changeInfo.status === 'complete' && tab.url && isContentScriptTargetUrl(tab.url))
+        scheduleBroadcastLoginStateChanged()
+    })
+    return
+  }
+
   browser.cookies.onChanged.addListener(({ cookie }) => {
     const normalizedDomain = cookie.domain.trim().toLowerCase().replace(/^\.+/, '')
     const isBilibiliDomain = normalizedDomain === 'bilibili.com' || normalizedDomain.endsWith('.bilibili.com')

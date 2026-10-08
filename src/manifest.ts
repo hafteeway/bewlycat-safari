@@ -28,7 +28,7 @@ export async function getManifest() {
     // Setting `persistent` to true in Manifest V3 results in an error in Firefox
     // https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/background
     background: (isFirefox || isSafari)
-      ? { scripts: ['./dist/background/index.js'], persistent: isFirefox ? undefined : false }
+      ? { scripts: ['./dist/background/index.js'] }
       : { service_worker: './dist/background/index.js', type: 'module' },
 
     icons: {

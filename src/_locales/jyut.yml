@@ -851,6 +851,7 @@ settings:
   auto_play_playlist: 收藏列表
   auto_play_playlist_desc: 揀收藏列表嘅自動播放行為。「連播推薦」表示目前影片完咗之後繼續播推薦影片。
   enable_settings_sync: 允許同步設定
+  safari_settings_sync_unavailable: Safari 唔支援擴充功能設定嘅跨裝置雲端同步。設定會儲存喺本機，可以匯出同匯入備份。
   enable_settings_sync_desc: 開啟之後會同時儲存喺本機同瀏覽器雲端；牆紙背景同裝置播放狀態唔會同步（需要登入瀏覽器帳戶）。
   sync_cloud_conflict_title: 偵測到雲端設定備份
   sync_cloud_conflict_desc: 雲端已經有一份設定備份。兩邊都存在嘅設定會跟你揀嘅一邊做準。

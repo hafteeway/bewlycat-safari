@@ -329,7 +329,113 @@ else if (shouldInitializePageScript) {
     }
   `
 
+  // Native comment components declare their own light palette inside shadow
+  // roots. Bridge BewlyCat's tokens without :host-context, which cannot be
+  // relied on in Safari.
+  const COMMENT_THEME_CSS = `
+    :host, * {
+      --bew-native-comment-text-1: inherit !important;
+      --bew-native-comment-text-2: inherit !important;
+      --bew-native-comment-text-3: inherit !important;
+      --bew-native-comment-bg: inherit !important;
+      --bew-native-comment-elevated: inherit !important;
+      --bew-native-comment-fill: inherit !important;
+      --bew-native-comment-border: inherit !important;
+    }
+
+    :host, #body {
+      --bew-text-1: var(--bew-native-comment-text-1) !important;
+      --bew-text-2: var(--bew-native-comment-text-2) !important;
+      --bew-text-3: var(--bew-native-comment-text-3) !important;
+      --bew-bg: var(--bew-native-comment-bg) !important;
+      --bew-elevated-solid: var(--bew-native-comment-elevated) !important;
+      --bew-fill-1: var(--bew-native-comment-fill) !important;
+      --bew-border-color: var(--bew-native-comment-border) !important;
+      --text1: var(--bew-text-1) !important;
+      --text2: var(--bew-text-2) !important;
+      --text3: var(--bew-text-3) !important;
+      --bg1: var(--bew-bg) !important;
+      --bg2: var(--bew-elevated-solid) !important;
+      --bg3: var(--bew-fill-1) !important;
+      --bg1_float: var(--bew-elevated-solid) !important;
+      --line_regular: var(--bew-border-color) !important;
+      --line_light: var(--bew-border-color) !important;
+      --Ga0: var(--bew-bg) !important;
+      --Ga0_s: var(--bew-bg) !important;
+      --Ga1: var(--bew-fill-1) !important;
+      --Ga1_s: var(--bew-fill-1) !important;
+      --Ga2: var(--bew-border-color) !important;
+      --Ga3: var(--bew-border-color) !important;
+      --Ga5: var(--bew-text-3) !important;
+      --Ga6: var(--bew-text-2) !important;
+      --Ga7: var(--bew-text-2) !important;
+      --Ga10: var(--bew-text-1) !important;
+      --Ga10_t: var(--bew-text-1) !important;
+      --Ga11: var(--bew-bg) !important;
+      --Ga12: var(--bew-fill-1) !important;
+      --Wh0: var(--bew-bg) !important;
+      color: var(--bew-text-1);
+    }
+
+    #contents {
+      color: var(--bew-text-1) !important;
+    }
+  `
+
+  // Safari can retain custom-property values in Bilibili's floating editor.
+  // Resolve the document palette once per theme and explicitly bridge it into
+  // each comment root, including the editor's intermediate container.
+  const commentThemeRoots = new Set<ShadowRoot>()
+  let resolvedCommentThemeCSS: string | null = null
+  function applyCommentTheme(root: ShadowRoot) {
+    if (resolvedCommentThemeCSS === null) {
+      const documentStyle = getComputedStyle(document.documentElement)
+      const tokens = ['text-1', 'text-2', 'text-3', 'bg', 'elevated-solid', 'fill-1', 'border-color']
+      const aliases = ['text-1', 'text-2', 'text-3', 'bg', 'elevated', 'fill', 'border']
+      const palette = tokens.map((token, index) =>
+        `--bew-native-comment-${aliases[index]}: ${documentStyle.getPropertyValue(`--bew-${token}`)} !important;`).join('\n')
+      resolvedCommentThemeCSS = `${COMMENT_THEME_CSS}\n:host, #comment-area, #body, #editor { ${palette} }`
+    }
+    commentThemeRoots.add(root)
+    ensureCommentShadowStyle(root, 'bewly-comment-theme', resolvedCommentThemeCSS)
+  }
+  const commentThemeObserver = new MutationObserver(() => {
+    resolvedCommentThemeCSS = null
+    for (const root of commentThemeRoots) {
+      if (root.host.isConnected)
+        applyCommentTheme(root)
+      else
+        commentThemeRoots.delete(root)
+    }
+  })
+  commentThemeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'style'] })
+
   const COMMENT_SHADOW_STYLE_PATCHES: Record<string, { id: string, css: string }> = {
+    'bili-comments': {
+      id: 'bewly-comments-theme-style',
+      css: '',
+    },
+    'bili-comments-header-renderer': {
+      id: 'bewly-comments-header-theme-style',
+      css: `
+        #commentbox {
+          background-color: var(--bew-bg) !important;
+        }
+      `,
+    },
+    'bili-rich-text': {
+      id: 'bewly-comment-rich-text-style',
+      css: `
+        :host {
+          --bili-rich-text-link-color: var(--bew-theme-color) !important;
+          --bili-rich-text-link-color-hover: var(--bew-theme-color-80) !important;
+        }
+      `,
+    },
+    'bili-comment-textarea': {
+      id: 'bewly-comment-textarea-style',
+      css: '',
+    },
     'bili-comment-thread-renderer': {
       id: 'bewly-comment-thread-style',
       css: `
@@ -644,6 +750,15 @@ else if (shouldInitializePageScript) {
     'bili-comment-box': {
       id: 'bewly-comment-box-style',
       css: `
+        #body {
+          background: var(--bew-bg) !important;
+        }
+
+        #editor {
+          background-color: var(--bew-fill-1) !important;
+          color: var(--bew-text-1) !important;
+        }
+
         /* 表情/@/图片等工具按钮与编辑框共用同一条适配边框（B 站原生为 var(--Ga1)） */
         #editor:not(:hover):not(.active),
         .tool-btn {
@@ -666,8 +781,12 @@ else if (shouldInitializePageScript) {
   }
 
   function ensureCommentShadowStyle(root: ShadowRoot, id: string, css: string) {
-    if (root.querySelector(`#${id}`))
+    const existingStyle = root.querySelector(`#${id}`)
+    if (existingStyle) {
+      if (existingStyle.textContent !== css)
+        existingStyle.textContent = css
       return
+    }
 
     const style = document.createElement('style')
     style.id = id
@@ -748,6 +867,18 @@ else if (shouldInitializePageScript) {
               return
 
             try {
+              if (instance.shadowRoot) {
+                applyCommentTheme(instance.shadowRoot)
+                const stylePatch = COMMENT_SHADOW_STYLE_PATCHES[name]
+                if (stylePatch)
+                  ensureCommentShadowStyle(instance.shadowRoot, stylePatch.id, stylePatch.css)
+              }
+              // Theme styles do not depend on the settings handshake. Safari
+              // can mount comments before that message arrives.
+              if (!settingsReady) {
+                void settingsReadyPromise.then(() => scheduleEnhance(instance))
+                return
+              }
               enhance(instance)
             }
             catch (error) {
@@ -757,11 +888,8 @@ else if (shouldInitializePageScript) {
         })
       }
 
-      // 设置读取和两个渲染帧都完成后再增强，避免与 B 站首次水合争抢 DOM。
-      if (settingsReady)
-        runAfterBilibiliRender()
-      else
-        void settingsReadyPromise.then(runAfterBilibiliRender)
+      // Apply theme after rendering; defer settings-dependent enhancements.
+      runAfterBilibiliRender()
     }
 
     const lifecycleMethods = ['update', 'updated', 'connectedCallback'] as const

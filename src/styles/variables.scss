@@ -1,3 +1,16 @@
+// Resolve these aliases only on the document root. Native comment shadow hosts
+// can reset --bew-* through their own default palette; these aliases preserve
+// the document's effective theme through every nested shadow root.
+:root {
+  --bew-native-comment-text-1: var(--bew-text-1);
+  --bew-native-comment-text-2: var(--bew-text-2);
+  --bew-native-comment-text-3: var(--bew-text-3);
+  --bew-native-comment-bg: var(--bew-bg);
+  --bew-native-comment-elevated: var(--bew-elevated-solid);
+  --bew-native-comment-fill: var(--bew-fill-1);
+  --bew-native-comment-border: var(--bew-border-color);
+}
+
 :host,
 :root {
   --bew-page-max-width: 2280px;

@@ -24,6 +24,7 @@ export default defineConfig(() => ({
   sourcemap: false, // https://github.com/vitejs/vite-plugin-vue/issues/35
   define: {
     '__DEV__': JSON.stringify(isDev),
+    '__SAFARI__': JSON.stringify(isSafari),
     '__BUILD_COMMIT__': JSON.stringify(buildCommit),
     'process.env.NODE_ENV': JSON.stringify(isDev ? 'development' : 'production'),
     'process.env.FIREFOX': isFirefox ? 'true' : 'false',

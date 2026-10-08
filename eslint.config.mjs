@@ -18,6 +18,9 @@ export default antfu(
       '**/public/**',
       '**/extension/**',
       '**/extension-firefox/**',
+      '**/extension-safari/**',
+      '**/safari-native*/**',
+      '**/safari-derived/**',
       '**/.kiro/**',
     ],
     rules: {

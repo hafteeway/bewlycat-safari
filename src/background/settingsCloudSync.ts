@@ -477,11 +477,15 @@ function handleSyncChanges(
 async function readSettingsCloudSyncStatus(): Promise<SettingsCloudSyncStatus> {
   // Let read failures propagate so the caller can surface them instead of
   // silently treating the cloud as empty and skipping the direction choice.
+  if (__SAFARI__)
+    return { state: 'incompatible' }
   const cloudItems = await browser.storage.sync.get(null)
   return classifyCloudItems(cloudItems)
 }
 
 async function handleEnableSettingsCloudSync(value: unknown): Promise<SettingsCloudSyncEnableResponse> {
+  if (__SAFARI__)
+    return { ok: false, reason: 'incompatible' }
   const mode = normalizeSettingsCloudSyncMode(
     (value as { mode?: unknown } | undefined)?.mode,
   )
@@ -523,6 +527,13 @@ export function setupSettingsCloudSync() {
   browser.storage.onChanged.addListener(handleSyncChanges)
   onMessage(SETTINGS_CLOUD_SYNC_STATUS_MESSAGE, () => readSettingsCloudSyncStatus())
   onMessage(SETTINGS_CLOUD_SYNC_ENABLE_MESSAGE, value => handleEnableSettingsCloudSync(value))
+
+  // Safari implements storage.sync as local storage, without cross-device sync.
+  if (__SAFARI__) {
+    void browser.storage.local.set({ [SETTINGS_CLOUD_SYNC_ENABLED_KEY]: false })
+      .catch(error => logCloudSyncError('Failed to disable unsupported cloud sync:', error))
+    return
+  }
 
   const initialPreferenceGeneration = preferenceGeneration
   void browser.storage.local.get(SETTINGS_CLOUD_SYNC_ENABLED_KEY).then((stored) => {

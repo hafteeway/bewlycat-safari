@@ -876,6 +876,7 @@ settings:
   current_contributors: BewlyCat Contributors (including BewlyBewly)
   contributors_image_failed: Contributor image failed to load
   enable_settings_sync: Allow syncing settings
+  safari_settings_sync_unavailable: Safari does not sync extension settings across devices. Settings are saved locally and can be exported and imported.
   enable_settings_sync_desc: >-
     Save settings locally and to browser cloud storage. Wallpaper/background
     settings and per-device playback state are not synced (requires signing in

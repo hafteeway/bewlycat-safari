@@ -39,6 +39,8 @@ const pendingEnableChoice = ref(false)
 const { t } = useI18n()
 const toast = useToast()
 
+const isSafariBuild = __SAFARI__
+
 const isDev = computed((): boolean => import.meta.env.DEV)
 
 onMounted(async () => {
@@ -259,13 +261,13 @@ async function handleCopyEnvironmentInfo() {
         <SettingsItemGroup :title="$t('settings.group_settings_sync')">
           <SettingsItem
             :title="$t('settings.enable_settings_sync')"
-            :desc="$t('settings.enable_settings_sync_desc')"
+            :desc="$t(isSafariBuild ? 'settings.safari_settings_sync_unavailable' : 'settings.enable_settings_sync_desc')"
             right-width="auto"
           >
             <Radio
               :key="syncSwitchRenderTick"
-              :model-value="settingsCloudSyncPreference === true"
-              :disabled="isSyncToggling"
+              :model-value="!isSafariBuild && settingsCloudSyncPreference === true"
+              :disabled="isSafariBuild || isSyncToggling"
               @update:model-value="handleSyncToggle"
             />
           </SettingsItem>

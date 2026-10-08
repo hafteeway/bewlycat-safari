@@ -45,6 +45,7 @@ export const sharedConfig: UserConfig = {
 
     replace({
       '__DEV__': JSON.stringify(isDev),
+      '__SAFARI__': JSON.stringify(isSafari),
       '__BUILD_COMMIT__': JSON.stringify(buildCommit),
       'process.env.NODE_ENV': JSON.stringify(isDev ? 'development' : 'production'),
       '__VUE_OPTIONS_API__': JSON.stringify(true),

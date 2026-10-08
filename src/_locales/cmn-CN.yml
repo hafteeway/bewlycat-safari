@@ -601,6 +601,7 @@ settings:
   filter_articles_in_moments: 过滤专栏
   filter_articles_in_moments_desc: 在动态列表中过滤掉专栏内容，仅显示视频
   enable_settings_sync: 启用设置同步
+  safari_settings_sync_unavailable: Safari 不支持扩展设置的跨设备云同步。设置保存在本机，可通过导出和导入备份。
   enable_settings_sync_desc: 开启后同时保存到本地和浏览器云端；壁纸背景与设备播放状态不会同步（需要登录浏览器账号）
   sync_cloud_conflict_title: 检测到云端设置备份
   sync_cloud_conflict_desc: 云端已有一份设置备份。两侧都存在的设置将以你所选的一侧为准。

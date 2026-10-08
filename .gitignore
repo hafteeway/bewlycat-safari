@@ -26,3 +26,21 @@ extension-safari-macos/
 .playwright-mcp/
 # 本地计划
 UI-FIX-PLAN.md
+
+safari-native/
+safari-native-macos/
+safari-derived/
+
+# Local agent instructions and signing / IDE state
+AGENTS.md
+CLAUDE.md
+docs/agent-*.md
+xcuserdata/
+*.xcuserstate
+*.p12
+*.pfx
+*.key
+*.mobileprovision
+*.provisionprofile
+.env
+.env.*
